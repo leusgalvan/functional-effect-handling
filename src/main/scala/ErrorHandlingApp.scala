@@ -5,6 +5,8 @@ import cats.implicits._
 import cats.effect._
 import cats.effect.implicits._
 
+import scala.util.control.NonFatal
+
 object Controller {
   case class Request(fromAccount: String, toAccount: String, amount: String)
   case class Response(status: Int, body: String)
@@ -32,7 +34,9 @@ object Controller {
       case Invalid(errors) =>
         Response(400, errors.mkString_(", ")).pure[IO]
     }
-    response.handleErrorWith(_ => Response(500, "Internal server error").pure[IO])
+    response.handleErrorWith {
+      case NonFatal(e) => Response(500, "Internal server error").pure[IO]
+    }
   }
 }
 
@@ -106,20 +110,21 @@ object Service {
   import Models._
 
   def transfer(fromAccountNumber: String, toAccountNumber: String, amount: Double): IO[Either[DomainError, Unit]] = {
-    Repository.findAccountByNumber(fromAccountNumber).flatMap { fromAccountOpt =>
-      Repository.findAccountByNumber(toAccountNumber).flatMap { toAccountOpt =>
-        val accounts: Either[DomainError, (Account, Account)] = for {
-          fromAccount <- fromAccountOpt.toRight(AccountNotFound(fromAccountNumber))
-          toAccount <- toAccountOpt.toRight(AccountNotFound(toAccountNumber))
-          updatedFromAccount <- fromAccount.withdraw(amount)
-          updatedToAccount <- toAccount.deposit(amount)
-        } yield (updatedFromAccount, updatedToAccount)
-
-        accounts.traverse { case (fromAccount, toAccount) =>
-          Repository.saveAccount(fromAccount) *> Repository.saveAccount(toAccount)
-        }
-      }
-    }
+    IO.raiseError(new Exception("boom"))
+//    Repository.findAccountByNumber(fromAccountNumber).flatMap { fromAccountOpt =>
+//      Repository.findAccountByNumber(toAccountNumber).flatMap { toAccountOpt =>
+//        val accounts: Either[DomainError, (Account, Account)] = for {
+//          fromAccount <- fromAccountOpt.toRight(AccountNotFound(fromAccountNumber))
+//          toAccount <- toAccountOpt.toRight(AccountNotFound(toAccountNumber))
+//          updatedFromAccount <- fromAccount.withdraw(amount)
+//          updatedToAccount <- toAccount.deposit(amount)
+//        } yield (updatedFromAccount, updatedToAccount)
+//
+//        accounts.traverse { case (fromAccount, toAccount) =>
+//          Repository.saveAccount(fromAccount) *> Repository.saveAccount(toAccount)
+//        }
+//      }
+//    }
   }
 }
 

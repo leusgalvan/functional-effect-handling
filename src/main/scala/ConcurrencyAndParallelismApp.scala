@@ -10,7 +10,7 @@ object ConcurrencyAndParallelismApp extends IOApp {
     case class Image(bytes: List[Byte])
 
     def fetchHttp(n: Int): IO[List[Image]] =
-      IO.sleep(10000.millis) *> IO.raiseError(new Exception("http boom"))
+      IO.raiseError(new Exception("boom"))
 
     def fetchDb(n: Int): IO[List[Image]] =
       IO.sleep(100.seconds) *> IO.raiseError(new Exception("db boom"))

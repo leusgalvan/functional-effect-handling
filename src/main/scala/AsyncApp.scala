@@ -37,7 +37,7 @@ object AsyncApp extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] = {
     val ec: ExecutionContext = ExecutionContext.fromExecutor(Executors.newCachedThreadPool())
-    findPersonByIdIO3("123")
+    IO.blocking(findPersonByIdIO2("123"))
       //.evalOn(ec)
       .flatTap(IO.println)
       .as(ExitCode.Success)

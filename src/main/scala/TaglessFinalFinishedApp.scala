@@ -4,6 +4,8 @@ import cats.effect.implicits._
 import cats.effect.std.Console
 import cats.implicits._
 
+import scala.concurrent.{ExecutionContext, Future}
+
 case object TaglessFinalFinishedApp extends IOApp {
 
   case class User(username: String, age: Int)
@@ -46,9 +48,10 @@ case object TaglessFinalFinishedApp extends IOApp {
   }
 
   override def run(args: List[String]): IO[ExitCode] = {
+    implicit val ec: ExecutionContext = ExecutionContext.global
     for {
-      userRepo <- UserRepo.impl[IO]
-      userService = UserService.impl[IO]
+      userRepo <- UserRepo.impl[Future]
+      userService = UserService.impl[Future]
       users = List(User("leandro", 18), User("eugenia", 32), User("majo", 25))
       _ <- users.traverse_(userRepo.addUser)
       savedUsers <- userRepo.getUsers()

@@ -37,18 +37,18 @@ object QueueExercise extends IOApp {
     } yield images
   }
 
-  // TODO: Take a processed image from the and save it to the corresponding file
+  // TODO: Take processed images from the processed queue, and save them to the corresponding file
   def imageSaver(
     processedImageQueue: Queue[IO, ImageInfo]
   ): IO[Unit] = {
     IO.println(s"Creating imageSaver") *>
     processedImageQueue.take.flatMap { image =>
-      IO.println(s"Saving image to ${image.filepath}")
+      IO.println(s"Saving image to ${image.filepath}") *>
       saveImage(image)
-    }
+    }.foreverM
   }
 
-  // TODO: Take a raw image from the queue, process it and put it in the processed queue
+  // TODO: Take raw images from the raw queue, process them and put them in the processed queue
   def imageProcessor(
     rawImageQueue: Queue[IO, ImageInfo],
     processedImageQueue: Queue[IO, ImageInfo]
@@ -69,7 +69,7 @@ object QueueExercise extends IOApp {
   ): IO[Unit] = {
     IO.println(s"Creating imageLoader for directory $srcDirectory") *>
     loadImages(srcDirectory).flatMap { images =>
-      IO.println(s"Loaded ${images.length} from directory $srcDirectory")
+      IO.println(s"Loaded ${images.length} from directory $srcDirectory") *>
       images.parTraverse_(rawImageQueue.offer)
     }
   }
